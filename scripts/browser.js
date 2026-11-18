@@ -9,14 +9,16 @@
 //   sites may restrict accounts they flag. Capture mode only reads pages you open yourself.
 //   Search mode is automated: keep volumes low and use it at your own risk.
 //
-// Requires the hub server to be running (`npm start`) and Google Chrome installed.
+// Requires the hub to be reachable (`npm run dev` locally, or your Vercel URL in HUB_URL) and Google Chrome.
+// For a deployed hub set HUB_URL=https://<app>.vercel.app and HUB_TOKEN=<same as the Vercel env var> in .env.local.
 import { chromium } from 'playwright-core';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const HUB = process.env.HUB_URL || `http://localhost:${process.env.PORT || 3000}`;
+const HUB = (process.env.HUB_URL || `http://localhost:${process.env.PORT || 3000}`).replace(//$/, '');
+const AUTH = process.env.HUB_TOKEN ? { Authorization: `Bearer ${process.env.HUB_TOKEN}` } : {};
 const MODE = process.argv.includes('search') ? 'search' : 'capture';
 const MAX_PER_SEARCH = Number((process.argv.find((a) => a.startsWith('--max=')) || '').split('=')[1]) || 20;
 const SITES = (process.argv.find((a) => a.startsWith('--sites=')) || '--sites=linkedin,indeed').split('=')[1].split(',');
@@ -28,11 +30,17 @@ const jitter = (a, b) => sleep(a + Math.random() * (b - a));
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 // ---- check hub is up ----
+let hubStatus = 0;
 try {
-  const r = await fetch(`${HUB}/api/task`);
+  const r = await fetch(`${HUB}/api/task`, { headers: AUTH });
+  hubStatus = r.status;
   if (!r.ok) throw new Error();
 } catch {
-  console.error(`✗ Can't reach the hub at ${HUB}. Start it first with:  npm start`);
+  if (hubStatus === 401) {
+    console.error(`✗ The hub at ${HUB} needs a token. Set HUB_TOKEN in .env.local (same value as in Vercel).`);
+    process.exit(1);
+  }
+  console.error(`✗ Can't reach the hub at ${HUB}. Start it first with:  npm run dev  (or set HUB_URL)`);
   process.exit(1);
 }
 
@@ -94,7 +102,7 @@ async function capture(page, hit) {
   try {
     const r = await fetch(`${HUB}/api/import`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...AUTH },
       body: JSON.stringify({ ...data, source: hit.site, extId: hit.id, url }),
     });
     const j = await r.json();

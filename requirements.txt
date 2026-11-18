@@ -1,0 +1,6 @@
+# Runtime deps for the FastAPI backend (installed by Vercel for api/index.py)
+fastapi==0.163.1
+httpx==0.28.1
+psycopg[binary]==3.3.9
+pgvector==0.5.1
+tzdata>=2025.2

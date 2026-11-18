@@ -1,19 +1,38 @@
 {
   "name": "internship-hub",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Personal internship crawler + tracker with RAG search (marketing, content, UX/UI) for Ontario",
   "type": "module",
   "scripts": {
-    "start": "node --env-file-if-exists=.env server/index.js",
-    "crawl": "node --env-file-if-exists=.env scripts/crawl.js",
-    "browser": "node --env-file-if-exists=.env scripts/browser.js"
+    "dev": "concurrently -k -n web,api -c magenta,cyan \"next dev\" \"node scripts/py.mjs api\"",
+    "dev:web": "next dev",
+    "dev:api": "node scripts/py.mjs api",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/py.mjs -m pytest -q tests",
+    "setup:py": "node scripts/py.mjs setup",
+    "db:migrate": "node scripts/py.mjs -m backend.cli migrate",
+    "crawl": "node scripts/py.mjs -m backend.cli crawl",
+    "browser": "node --env-file-if-exists=.env.local scripts/browser.js"
   },
   "engines": {
-    "node": ">=22.9"
+    "node": ">=20.9"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "playwright-core": "^1.49.1"
+    "@neon/config": "^1.14.2",
+    "@neon/env": "^2.1.5",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "concurrently": "^10.0.7",
+    "playwright-core": "^1.49.1",
+    "typescript": "5.9.3"
   }
 }
