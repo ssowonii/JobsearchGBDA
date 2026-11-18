@@ -12,3 +12,8 @@ __pycache__/
 data/
 *.pdf
 .neon
+
+.vercel
+.env*
+
+!.env.example
