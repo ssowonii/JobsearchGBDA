@@ -1,0 +1,14 @@
+# CLI deploys upload the local folder; keep secrets, personal files and local artifacts out.
+.env
+.env*.local
+.neon
+*.pdf
+data/
+.venv/
+.next/
+node_modules/
+__pycache__/
+.pytest_cache/
+*.tsbuildinfo
+.claude/
+.mcp.json
